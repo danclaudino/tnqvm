@@ -1,0 +1,3 @@
+add_xacc_test(ITensorMPSVisitor)
+target_include_directories(ITensorMPSVisitorTester PRIVATE ${CMAKE_SOURCE_DIR}/tnqvm/visitors/itensor)
+target_link_libraries(ITensorMPSVisitorTester tnqvm-itensor)
