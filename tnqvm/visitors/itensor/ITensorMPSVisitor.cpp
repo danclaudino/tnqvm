@@ -30,6 +30,11 @@ void ITensorMPSVisitor::initialize(std::shared_ptr<AcceleratorBuffer> buffer, in
 }
 
 void ITensorMPSVisitor::finalize() {
+
+  if (!m_measureBits.empty()) {
+    m_buffer->addExtraInfo("exp-val-z", juliabindings::compute_expectation_z(m_measureBits.data(), m_measureBits.size()));
+  }
+
   if (isJuliaInitialized) {
     juliabindings::finalize_mps();
     isJuliaInitialized = false;
@@ -58,6 +63,10 @@ void ITensorMPSVisitor::visit(Rx &gate) {applySingleQubitGate(gate); }
 void ITensorMPSVisitor::visit(Ry &gate) {applySingleQubitGate(gate); }
 void ITensorMPSVisitor::visit(Rz &gate) {applySingleQubitGate(gate); }
 void ITensorMPSVisitor::visit(U &gate) {applySingleQubitGate(gate); }
+void ITensorMPSVisitor::visit(Measure &gate) {
+  // julia containers start at 1
+  m_measureBits.push_back(gate.bits()[0] + 1);
+}
 
 
 const double ITensorMPSVisitor::getExpectationValueZ(std::shared_ptr<CompositeInstruction> function) {

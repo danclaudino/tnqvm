@@ -49,7 +49,7 @@ public:
   void visit(Rz &gate);
   void visit(U &gate);
   //void visit(CNOT &gate);
-  //void visit(Measure &gate);
+  void visit(Measure &gate);
 
 
 private:
