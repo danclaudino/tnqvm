@@ -1,7 +1,9 @@
-void* initialize_mps(int);
-void print_mps(void* ptr_mps);
-void apply_single_qubit_gate(int, const char*);
-void applySingleUGate(int, const char*, double, double, double);
-void two_qubit_gate(int, int, const char*);
-double compute_expectation_z(int*, int);
-void finalize_mps();
+void* initialize(const int);
+void print_mps(const void*);
+void applySingleQubitGate(const int, const char*);
+void applySingleQubitRotGate(const int, const char*, const double);
+void applySingleQubitUGate(const int, const char*, const double, const double, const double);
+void applyTwoQubitGate(const int, const int, const char*);
+void applyTwoQubitRotGate(const int, const int, const char*, const double);
+double computeExpectationValueZ(const int*, const int);
+void finalize();

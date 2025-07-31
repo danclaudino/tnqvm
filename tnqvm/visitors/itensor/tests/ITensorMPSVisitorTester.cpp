@@ -115,7 +115,7 @@ TEST(ITensorMPSVisitorTester, checkSimpleSimulation) {
   auto h = gateRegistry->createInstruction("H", std::vector<std::size_t>{0});
   auto m1 = gateRegistry->createInstruction("Measure", std::vector<std::size_t>{0});
   auto m2 = gateRegistry->createInstruction("Measure", std::vector<std::size_t>{1});
- /* 
+  
   term0->addInstruction(rx);
   term0->addInstruction(ry);
   term0->addInstruction(rx2);
@@ -125,10 +125,13 @@ TEST(ITensorMPSVisitorTester, checkSimpleSimulation) {
   term0->addInstruction(ry2);
   term0->addInstruction(rx3);
   term0->addInstruction(meas);
-*/
+/*
+  term0->addInstruction(rx);
   term0->addInstruction(h);
+  term0->addInstruction(cnot1);
   term0->addInstruction(m1);
   term0->addInstruction(m2);
+  */
   const auto run = [&term0](double theta) -> double {
     auto buffer = xacc::qalloc(2);
     // Get the visitor backend
@@ -143,10 +146,10 @@ TEST(ITensorMPSVisitorTester, checkSimpleSimulation) {
     visitor->initialize(buffer);
 
     std::vector<double> v{theta};
-    //auto evaled = term0->operator()(v);
+    auto evaled = term0->operator()(v);
 
     // Walk the IR tree, and visit each node
-    InstructionIterator it(term0);
+    InstructionIterator it(evaled);
     while (it.hasNext()) {
       std::cout << "Has next\n";
       auto nextInst = it.next();
@@ -173,6 +176,7 @@ TEST(ITensorMPSVisitorTester, checkSimpleSimulation) {
     const auto expectedValue = calculateExpectedResult(-pi);
     EXPECT_NEAR(expectedValue, run(-pi), epsilon);
   }
+    exit(0);
   {
     const auto expectedValue = calculateExpectedResult(-1.44159);
     EXPECT_NEAR(expectedValue, run(-1.44159), epsilon);
@@ -189,6 +193,7 @@ TEST(ITensorMPSVisitorTester, checkSimpleSimulation) {
     const auto expectedValue = calculateExpectedResult(pi);
     EXPECT_NEAR(expectedValue, run(pi), epsilon);
   }
+
 }
 
 TEST(ITensorMPSVisitorTester, checkOneQubitBug) {

@@ -1,10 +1,10 @@
+#pragma once
 #include <cstdlib>
 #include <memory>
 #include <string>
 #include "TNQVMVisitor.hpp"
 #include "Cloneable.hpp"
 #include "julia.h"
-
 
 namespace juliabindings {
 extern "C" {
@@ -16,7 +16,6 @@ extern "C" {
 namespace tnqvm {
 
 class ITensorMPSVisitor : public TNQVMVisitor {
-
 
 public:
   ITensorMPSVisitor();
@@ -48,12 +47,15 @@ public:
   void visit(Ry &gate);
   void visit(Rz &gate);
   void visit(U &gate);
-  //void visit(CNOT &gate);
+  void visit(CNOT &gate);
+  void visit(Swap &gate);
+  void visit(CPhase &gate);
+  void visit(CRZ &gate);
   void visit(Measure &gate);
-
 
 private:
   void applySingleQubitGate(xacc::Instruction &in_gate);
+  void applyTwoQubitGate(xacc::Instruction &in_gate);
 
 private:
   std::shared_ptr<AcceleratorBuffer> m_buffer;
