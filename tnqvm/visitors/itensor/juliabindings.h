@@ -1,4 +1,4 @@
-void* initialize(const int);
+void initialize(const int);
 void print_mps(const void*);
 void applySingleQubitGate(const int, const char*);
 void applySingleQubitRotGate(const int, const char*, const double);

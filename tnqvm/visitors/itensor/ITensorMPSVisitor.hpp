@@ -18,8 +18,7 @@ namespace tnqvm {
 class ITensorMPSVisitor : public TNQVMVisitor {
 
 public:
-  ITensorMPSVisitor();
-  virtual ~ITensorMPSVisitor();
+  ITensorMPSVisitor() = default;;
   virtual std::shared_ptr<TNQVMVisitor> clone() {
     return std::make_shared<ITensorMPSVisitor>();
   }
@@ -29,7 +28,7 @@ public:
   virtual void initialize(std::shared_ptr<AcceleratorBuffer> buffer, int nbShots = 1) override;
   virtual void finalize() override;
 
-  virtual const std::string name() const { return "julia-itensor"; }
+  virtual const std::string name() const { return "itensor-mps"; }
   virtual const std::string description() const { return ""; }
 
   virtual OptionPairs getOptions() {
@@ -37,6 +36,8 @@ public:
                       "Provide the cutoff (default 1e-4) for the singular value decomposition."}};
     return desc;
   }
+
+  bool supportVqeMode() const override { return true; }
 
   void visit(Identity &gate) {}
   void visit(Hadamard &gate);
@@ -61,7 +62,7 @@ private:
   std::shared_ptr<AcceleratorBuffer> m_buffer;
   std::vector<int> m_measureBits;
 public:
-  bool isJuliaInitialized;
+  static inline bool isJuliaInitialized = false;
 };
 
 } // namespace tnqvm

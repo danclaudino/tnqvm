@@ -10,10 +10,6 @@
 
 namespace tnqvm {
 
-ITensorMPSVisitor::ITensorMPSVisitor() {}
-
-ITensorMPSVisitor::~ITensorMPSVisitor() {}
-
 void ITensorMPSVisitor::initialize(std::shared_ptr<AcceleratorBuffer> buffer, int nbShots) {
 
   if (!isJuliaInitialized) {
@@ -32,12 +28,13 @@ void ITensorMPSVisitor::initialize(std::shared_ptr<AcceleratorBuffer> buffer, in
 void ITensorMPSVisitor::finalize() {
 
   if (!m_measureBits.empty()) {
-    m_buffer->addExtraInfo("exp-val-z", juliabindings::computeExpectationValueZ(m_measureBits.data(), m_measureBits.size()));
+    auto expValueZ = juliabindings::computeExpectationValueZ(m_measureBits.data(), m_measureBits.size());
+    m_buffer->addExtraInfo("exp-val-z", expValueZ);
   }
 
   if (isJuliaInitialized) {
     juliabindings::finalize();
-    isJuliaInitialized = false;
+    juliabindings::shutdown_julia(0);
   }
 
 }
@@ -89,8 +86,24 @@ void ITensorMPSVisitor::visit(Measure &gate) {
 }
 
 
-const double ITensorMPSVisitor::getExpectationValueZ(std::shared_ptr<CompositeInstruction> function) {
-  return 0.0;
+const double ITensorMPSVisitor::getExpectationValueZ(std::shared_ptr<CompositeInstruction> in_function) {
+
+  InstructionIterator it(in_function);
+  assert(m_measureBits.empty());
+  std::vector<int> measureBits;
+  while (it.hasNext()) {
+    auto nextInst = it.next();
+    if (nextInst->isEnabled() && !nextInst->isComposite()) {
+      if (nextInst->name() != "Measure") {
+        nextInst->accept(this);
+      } else {
+        measureBits.emplace_back(nextInst->bits()[0] + 1);
+      }
+    }
+  }
+  assert(!measureBits.empty());
+  const double exp_val = juliabindings::computeExpectationValueZ(measureBits.data(), measureBits.size());;
+  return exp_val;
 }
 
 } // namespace tnqvm
