@@ -6,4 +6,5 @@ void applySingleQubitUGate(const int, const char*, const double, const double, c
 void applyTwoQubitGate(const int, const int, const char*);
 void applyTwoQubitRotGate(const int, const int, const char*, const double);
 double computeExpectationValueZ(const int*, const int);
+double *computeEntanglementEntropy(void);
 void finalize();

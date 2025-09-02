@@ -26,8 +26,15 @@ void ITensorMPSVisitor::initialize(std::shared_ptr<AcceleratorBuffer> buffer, in
 }
 
 void ITensorMPSVisitor::finalize() {
+	//std::cout <<"calling FINALIZEi\n";
 
   if (!m_measureBits.empty()) {
+    double* entropyPtr = juliabindings::computeEntanglementEntropy();
+    //std::cout << "Entropy data: " << entropyPtr[0] << ", " << entropyPtr[1] << std::endl;
+    m_buffer->addExtraInfo("avg-entropy", entropyPtr[0]);
+    m_buffer->addExtraInfo("stddev-entropy", entropyPtr[1]);
+    
+
     auto expValueZ = juliabindings::computeExpectationValueZ(m_measureBits.data(), m_measureBits.size());
     m_buffer->addExtraInfo("exp-val-z", expValueZ);
   }
@@ -85,8 +92,24 @@ void ITensorMPSVisitor::visit(Measure &gate) {
   m_measureBits.push_back(gate.bits()[0] + 1);
 }
 
+/*
+void ITensorMPSVisitor::visit(Entropy &gate){
+  std::cout<<"getting entanglement entropy";
+  double* entropyPtr;// = entropyVals.data();
+  entropyPtr = juliabindings::computeEntanglementEntropy();
+  std::cout << "Avg Entanglement Entropy: " << entropyPtr[0];
+  std::cout << "         StdDev Entanglement Entropy: " << entropyPtr[1]; 
+}*/
+
+
 
 const double ITensorMPSVisitor::getExpectationValueZ(std::shared_ptr<CompositeInstruction> in_function) {
+
+
+double* entropyPtr = juliabindings::computeEntanglementEntropy();
+std::cout << "Entropy data: " << entropyPtr[0] << ", " << entropyPtr[1] << std::endl;
+m_buffer->addExtraInfo("avg-entropy", entropyPtr[0]);
+m_buffer->addExtraInfo("stddev-entropy", entropyPtr[1]);
 
   InstructionIterator it(in_function);
   assert(m_measureBits.empty());

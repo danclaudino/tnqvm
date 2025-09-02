@@ -25,6 +25,7 @@ public:
 
   virtual const double getExpectationValueZ(std::shared_ptr<CompositeInstruction> function) override;
 
+
   virtual void initialize(std::shared_ptr<AcceleratorBuffer> buffer, int nbShots = 1) override;
   virtual void finalize() override;
 
@@ -53,7 +54,7 @@ public:
   void visit(CPhase &gate);
   void visit(CRZ &gate);
   void visit(Measure &gate);
-
+  //void visit(Entropy &gate);
 private:
   void applySingleQubitGate(xacc::Instruction &in_gate);
   void applyTwoQubitGate(xacc::Instruction &in_gate);
