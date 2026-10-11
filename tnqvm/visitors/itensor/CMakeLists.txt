@@ -3,40 +3,27 @@ set (LIBRARY_NAME tnqvm-itensor)
 find_package(BLAS REQUIRED)
 find_package(LAPACK REQUIRED)
 
-file (GLOB HEADERS mps/*.hpp)
-set (SRC mps/ITensorMPSVisitor.cpp
-         ITensorActivator.cpp
-         tpls/itensor/util/args.cc
-         tpls/itensor/util/input.cc
-         tpls/itensor/indexset.cc
-         tpls/itensor/tagset.cc
-         tpls/itensor/global.cc
-         tpls/itensor/util/cputime.cc
-         tpls/itensor/tensor/lapack_wrap.cc
-         tpls/itensor/tensor/vec.cc
-         tpls/itensor/tensor/mat.cc
-         tpls/itensor/tensor/gemm.cc
-         tpls/itensor/tensor/algs.cc
-         tpls/itensor/tensor/contract.cc
-         tpls/itensor/itdata/dense.cc
-         tpls/itensor/itdata/combiner.cc
-         tpls/itensor/itdata/diag.cc
-         tpls/itensor/itdata/qdense.cc
-         tpls/itensor/itdata/qcombiner.cc
-         tpls/itensor/itdata/qdiag.cc
-         tpls/itensor/itdata/scalar.cc
-         tpls/itensor/index.cc
-         tpls/itensor/itensor.cc
-         tpls/itensor/qn.cc
-         tpls/itensor/spectrum.cc
-         tpls/itensor/decomp.cc
-         tpls/itensor/svd.cc
-         tpls/itensor/hermitian.cc
-         tpls/itensor/mps/mps.cc
-         tpls/itensor/mps/mpsalgs.cc
-         tpls/itensor/mps/mpo.cc
-         tpls/itensor/mps/mpoalgs.cc
-         tpls/itensor/mps/autompo.cc)
+find_program(JULIA_EXECUTABLE julia REQUIRED)
+# Get Julia's binary directory
+execute_process(
+    COMMAND ${JULIA_EXECUTABLE} -e "using Libdl; println(Sys.BINDIR)"
+    OUTPUT_VARIABLE JULIA_BINDIR
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+
+# Derive Julia root (parent of bin/)
+get_filename_component(JULIA_ROOT ${JULIA_BINDIR} DIRECTORY)
+
+# Construct include and lib paths
+set(JULIA_INCLUDE_DIR "${JULIA_ROOT}/include/julia")
+set(JULIA_LIBRARY_DIR "${JULIA_ROOT}/lib")
+
+# Optionally report
+message(STATUS "Found Julia include: ${JULIA_INCLUDE_DIR}")
+message(STATUS "Found Julia library: ${JULIA_LIBRARY_DIR}")
+
+file (GLOB HEADERS *.h *.hpp mps/*.hpp)
+set (SRC ITensorMPSVisitor.cpp ITensorActivator.cpp)
 
 usFunctionGetResourceSource(TARGET ${LIBRARY_NAME} OUT SRC)
 usFunctionGenerateBundleInit(TARGET ${LIBRARY_NAME} OUT SRC)
@@ -66,14 +53,17 @@ usFunctionEmbedResources(TARGET ${LIBRARY_NAME}
     manifest.json
     )
 
-target_include_directories(${LIBRARY_NAME} PUBLIC ${ITENSOR_ROOT} mps ${XACC_INCLUDE_ROOT}/eigen tpls)
-target_link_libraries(${LIBRARY_NAME} PUBLIC xacc::xacc xacc::quantum_gate ${BLAS_LIBRARIES} ${LAPACK_LIBRARIES})
+find_library(JULIA_LIB julia REQUIRED PATHS ${JULIA_LIBRARY_DIR})
+find_library(JULIA_BINDINGS juliaitensortnqvm HINTS ${JULIA_BINDINGS_PATH} REQUIRED)
+
+target_include_directories(${LIBRARY_NAME} PUBLIC ${XACC_INCLUDE_ROOT}/eigen ${JULIA_INCLUDE_DIR})
+target_link_libraries(${LIBRARY_NAME} PUBLIC xacc::xacc xacc::quantum_gate ${BLAS_LIBRARIES} ${LAPACK_LIBRARIES} ${JULIA_LIB} ${JULIA_BINDINGS})
 
 xacc_configure_plugin_rpath(${LIBRARY_NAME})
 
 install(TARGETS ${LIBRARY_NAME} DESTINATION ${CMAKE_INSTALL_PREFIX}/plugins)
 
 if(TNQVM_BUILD_TESTS)
-	add_subdirectory(mps/tests)
+	add_subdirectory(tests)
 endif()
 
